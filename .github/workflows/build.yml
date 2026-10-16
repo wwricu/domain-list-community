@@ -5,8 +5,6 @@ on:
       - master
     paths-ignore:
       - "**/README.md"
-  pull_request:
-    types: [synchronize]
   workflow_dispatch:
 jobs:
   build:
@@ -28,11 +26,17 @@ jobs:
         with:
           go-version-file: code/go.mod
 
-      - name: Build rules.dat file & Set variables
+      - name: Build rules.dat file
         run: go run ./
 
-      - name: Release and upload assets
-        run: gh release create $(date +%Y%m%d%H%M%S) --generate-notes --latest --title $(date +%Y%m%d%H%M%S) rules.dat
+      - name: Update latest release
+        run: |
+          # Delete previous 'latest' release and tag if exists
+          gh release delete latest --yes --cleanup-tag || true
+          git tag -d latest || true
+          git push origin :refs/tags/latest || true
+          # Create new 'latest' release
+          gh release create latest rules.dat --latest --title "Latest Build ($(date +%Y-%m-%d))" --notes "Auto-generated rules.dat from commit ${{ github.sha }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -42,7 +46,3 @@ jobs:
           name: bad-proxy-go
           path: code/rules.dat
           overwrite: true
-      - name: Attest
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-path: code/rules.dat
