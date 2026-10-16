@@ -1,11 +1,57 @@
-name: Sync Fork
+name: Sync upstream (data-only)
 
 on:
   schedule:
     - cron: '0 0 * * *' # every day
   workflow_dispatch:
+
+permissions:
+  contents: write
+
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: tgymnich/fork-sync@v2.0
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: master
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Sync upstream data/ only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/v2fly/domain-list-community.git
+          git fetch --quiet upstream
+          # Replace only data/ with upstream's version; leave gob tooling untouched.
+          git rm -r --quiet data
+          git checkout upstream/master -- data
+          git add -A data
+          if git diff --staged --quiet; then
+            echo "No upstream data changes."
+            echo "synced=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "sync: pull upstream v2fly domain lists (data/ only)"
+            git push origin master
+            echo "synced=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build rules.dat
+        run: go run ./
+
+      - name: Update latest release
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+          git tag -d latest || true
+          git push origin :refs/tags/latest || true
+          gh release create latest rules.dat --latest \
+            --title "Latest Build ($(date +%Y-%m-%d))" \
+            --notes "Auto-generated rules.dat (synced from v2fly/domain-list-community)"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
