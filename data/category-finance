@@ -2,6 +2,7 @@
 include:category-bank-ir
 include:category-bank-jp
 include:category-bank-mm
+include:category-bank-ru
 
 include:fibank
 include:futu
@@ -13,8 +14,10 @@ include:longbridge
 include:n26
 include:schwab
 include:standardchartered
+include:stripe
 include:wise
 
 fxcorporate.com
+jivara.global
 mql5.com
 tradingview.com

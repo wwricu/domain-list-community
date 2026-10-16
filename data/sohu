@@ -1,13 +1,20 @@
-include:sogou
-
 # All .sohu domains
 sohu
+
+include:changyou
 
 focus-img.cn
 focus.cn
 itc.cn
 sohu.com
 sohucs.com
+
+# 56网
+56.com
+56img.com
+
+# 快站
+kuaizhan.com
 
 # Ads/tracking
 adnet.sohu.com @ads
