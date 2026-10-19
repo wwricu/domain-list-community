@@ -41,18 +41,6 @@ jobs:
             git push origin master
             echo "synced=true" >> "$GITHUB_OUTPUT"
           fi
-
-      - name: Build rules.dat
-        run: go run ./
-
-      - name: Update latest release
-        run: |
-          gh release delete latest --yes --cleanup-tag --repo "${{ github.repository }}" || true
-          git tag -d latest || true
-          git push origin :refs/tags/latest || true
-          gh release create latest rules.dat --latest \
-            --repo "${{ github.repository }}" \
-            --title "Latest Build ($(date +%Y-%m-%d))" \
-            --notes "Auto-generated rules.dat (synced from v2fly/domain-list-community)"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # No release built here: the push above triggers Build rules.dat (build.yml),
+      # which owns publishing the timestamped release. Keeping release creation in
+      # one workflow avoids two jobs racing to write the same day's dataset.
