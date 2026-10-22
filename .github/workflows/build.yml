@@ -32,13 +32,13 @@ jobs:
       - name: Publish timestamped release
         run: |
           # One release per build, never deleting the old ones, so every day's
-          # rules.dat stays downloadable. The tag is a bare yyyymmddHHMMSS number;
-          # --latest still moves the releases/latest alias so clients pinned to it
-          # keep resolving the newest dataset.
+          # rules.dat stays downloadable. Tag and title are the same bare
+          # yyyymmddHHMMSS number; --latest still moves the releases/latest alias
+          # so clients pinned to it keep resolving the newest dataset.
           tag=$(date +%Y%m%d%H%M%S)
           gh release create "$tag" rules.dat \
             --latest \
-            --title "rules.dat $tag" \
+            --title "$tag" \
             --notes "Auto-generated rules.dat from commit ${{ github.sha }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
